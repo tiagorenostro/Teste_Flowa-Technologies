@@ -1,0 +1,7 @@
+*.xml
+.DS_store
+/.idea/*
+/OrderGenerator.API/obj/*
+/OrderGenerator.API/bin/*
+/OrderAccumulator/obj/*
+/OrderAccumulator/bin/*

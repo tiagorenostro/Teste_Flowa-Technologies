@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="OrderAccumulator/OrderAccumulator.csproj" />
+  <Project Path="OrderGenerator.API/OrderGenerator.API.csproj" />
+</Solution>
