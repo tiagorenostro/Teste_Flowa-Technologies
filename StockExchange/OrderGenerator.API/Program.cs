@@ -4,7 +4,7 @@ var configuracao = builder.Configuration.GetSection(nameof(AppSettings)).Get<App
 
 builder.Services.AddLogging(logging => logging.AddConsole());
 builder.Services.AddSingleton<IInitiatorApplication, InitiatorApplication>();
-builder.Services.AddSingleton(new SessionSettings(Path.Combine(AppContext.BaseDirectory, configuracao.PathFileConfigurationQuickFIX)));
+builder.Services.AddSingleton(new SessionSettings(Path.Combine(AppContext.BaseDirectory, configuracao.PathFileConfigurationQuickFIX!)));
 builder.Services.AddSingleton<IMessageStoreFactory, FileStoreFactory>();
 builder.Services.AddSingleton<IInitiator>(sp =>
 {
@@ -16,8 +16,20 @@ builder.Services.AddSingleton<IInitiator>(sp =>
     return new QuickFix.Transport.SocketInitiator(application, storeFactory, sessionSettings, loggerFactory);
 });
 
-builder.Services.AddScoped<ITradingGateway, TradingGateway>();
+builder.Services.AddSingleton<ITradingGateway, TradingGateway>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddSignalR();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(configuracao.CorsPolicy!,
+        policy =>
+        {
+            policy.WithOrigins(configuracao.UrlStockExhangeWeb!)
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        });
+});
 
 var app = builder.Build()
     .AddEndpoints();
@@ -25,6 +37,8 @@ var app = builder.Build()
 var socketInitiator = app.Services.GetRequiredService<IInitiator>();
 socketInitiator.Start();
 
+app.UseCors(configuracao.CorsPolicy!);
+app.MapHub<TradingHub>("/tradingHub");
 app.UseExceptionHandler(applicationBuilder =>
 {
     applicationBuilder.Run(async context =>

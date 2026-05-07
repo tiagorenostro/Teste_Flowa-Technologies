@@ -5,13 +5,18 @@ public interface ITradingGateway
     bool SendOrder(OrderRequestDto orderRequestDto);
 }
 
-public class TradingGateway(IInitiatorApplication initiatorApplication) : ITradingGateway
+public class TradingGateway : ITradingGateway
 {
-    public bool SendOrder(OrderRequestDto orderRequestDto) =>
-        initiatorApplication.SendOrder(orderRequestDto);
+    private readonly IInitiatorApplication _initiatorApplication;
 
-    public static void ReceiveOrder(OrderReportDto orderReportDto)
+    public TradingGateway(IInitiatorApplication initiatorApplication, IHubContext<TradingHub> hubContext)
     {
-        Console.WriteLine($"Validating Report {orderReportDto.Status}");
+        _initiatorApplication = initiatorApplication;
+        
+        _initiatorApplication.OnOrderReportReceived += async dto => 
+            await hubContext.Clients.All.SendAsync("OrderReportReceived", dto);
     }
+
+    public bool SendOrder(OrderRequestDto orderRequestDto) =>
+        _initiatorApplication.SendOrder(orderRequestDto);
 }

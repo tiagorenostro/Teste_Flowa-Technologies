@@ -5,6 +5,7 @@ global using System.Text.Json;
 global using System.Text.Json.Serialization;
 global using Microsoft.AspNetCore.Diagnostics;
 global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.AspNetCore.SignalR;
 global using QuickFix;
 global using QuickFix.Fields;
 global using QuickFix.FIX44;

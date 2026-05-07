@@ -2,6 +2,7 @@ namespace OrderGenerator.API.Infrastructure.Communication;
 
 public interface IInitiatorApplication : IApplication
 {
+    event Action<OrderReportDto> OnOrderReportReceived;
     bool SendOrder(OrderRequestDto orderDto);
 }
 
@@ -9,6 +10,8 @@ public class InitiatorApplication : MessageCracker, IInitiatorApplication
 {
     private Session Session { get; set; }
     private bool IsConnected { get; set; }
+    
+    public event Action<OrderReportDto> OnOrderReportReceived;
     
     public void ToAdmin(QuickFix.Message message, SessionID sessionID) { }
     public void FromAdmin(QuickFix.Message message, SessionID sessionID) { }
@@ -28,10 +31,8 @@ public class InitiatorApplication : MessageCracker, IInitiatorApplication
             throw new ApplicationException("Session QuickFIX not found.");
     }
 
-    public void OnMessage(ExecutionReport report, SessionID sessionID)
-    {
-        TradingGateway.ReceiveOrder(ConvertReport(report));
-    }
+    public void OnMessage(ExecutionReport report, SessionID sessionID) =>
+        OnOrderReportReceived.Invoke(ConvertReport(report));
 
     public bool SendOrder(OrderRequestDto orderDto) =>
         IsConnected
@@ -69,7 +70,8 @@ public class InitiatorApplication : MessageCracker, IInitiatorApplication
             Amount = report.IsSetOrderQty() ? report.OrderQty.Value : 0,
             Symbol = report.IsSetSymbol() ? report.Symbol.Value : string.Empty,
             Price = report.IsSetPrice() ? report.Price.Value : 0,
-            Status = DefineStatus(report)
+            Status = DefineStatus(report),
+            Side = DefineSide(report)
         };
 
     private static char DefineStatus(ExecutionReport report) =>
@@ -78,5 +80,12 @@ public class InitiatorApplication : MessageCracker, IInitiatorApplication
             ExecType.NEW => Status.Executed,
             ExecType.REJECTED => Status.Rejected,
             _ => Status.Outher
+        };
+    
+    private static char DefineSide(ExecutionReport report) =>
+        report.Side.Value switch
+        {
+            QuickFix.Fields.Side.BUY => Constants.Side.Buy,
+            QuickFix.Fields.Side.SELL => Constants.Side.Sell
         };
 }
