@@ -16,8 +16,7 @@ builder.Services.AddSingleton<IAcceptor>(sp =>
     return new ThreadedSocketAcceptor(app, storeFactory, sessionSettings, logger);
 });
 
-builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddSingleton<IShareRepository, ShareRepository>();
+builder.Services.AddSingleton<IOrderAccumulatorService, OrderAccumulatorService>();
 builder.Services.AddHostedService<OrderAccumulatorWorker>();
 
 await builder.Build()

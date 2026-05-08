@@ -1,8 +1,9 @@
-namespace OrderAccumulator.Worker.Domains;
+namespace OrderGenerator.API.Domain;
 
-public class Order(int amount, decimal price, char side)
+public class Order(string symbol, int amount, decimal price, char side)
 {
-    public Guid OrderId { get; set; } = Guid.NewGuid();
+    public Guid Code { get; set; } = Guid.NewGuid();
+    public string Symbol { get; set; } = symbol;
     public int Amount { get; set; } = amount;
     public decimal Price { get; set; } = price;
     public decimal OperatingValue { get; set; } = price * amount;
@@ -12,6 +13,6 @@ public class Order(int amount, decimal price, char side)
 
     public bool OrderRejected() => Status == Constants.Status.Rejected;
     public bool IsOrderSell() => Side == Constants.Side.Sell;
-    public void SetStatus(bool executeOrder) =>
-        Status = executeOrder ? Constants.Status.Executed : Constants.Status.Rejected;
+    public void SetStatus(char status) => Status = status;
+    public void Process(char status) => SetStatus(status);
 }

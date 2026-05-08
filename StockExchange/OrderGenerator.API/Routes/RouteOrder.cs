@@ -11,22 +11,32 @@ public static class RouteOrder
 
     private static IResult CreateNewOrder([FromServices] IOrderService orderService, OrderRequestDto dto)
     {
-        var isValid = ValidateRequest(dto, out var results);
+        var isValid = ValidateRequest(dto, out var errorDto);
         
         if (!isValid)
-            return TypedResults.BadRequest(results.Select(x => x.ErrorMessage));
+            return TypedResults.BadRequest(errorDto);
         
-        var sent = orderService.CreateNewOrder(dto);
+        var createNewOrderResult = orderService.CreateNewOrder(dto);
         
-        if (!sent)
-            return TypedResults.BadRequest("The order could not be sent.");
+        if (!createNewOrderResult.Success)
+            return TypedResults.BadRequest(new ErrorDto(createNewOrderResult.ErrorMessage, []));
         
         return TypedResults.Created();
     }
 
-    private static bool ValidateRequest(OrderRequestDto dto, out ICollection<ValidationResult> validationResults)
+    private static bool ValidateRequest(OrderRequestDto dto, out ErrorDto errorDto)
     {
-        validationResults = new List<ValidationResult>();
-        return Validator.TryValidateObject(dto, new ValidationContext(dto), validationResults, validateAllProperties: true);
+        var validationResults = new List<ValidationResult>();
+
+        var isValid = Validator.TryValidateObject(dto, new ValidationContext(dto), validationResults,
+            validateAllProperties: true);
+
+        errorDto = null!;
+        
+        if (!isValid)
+            errorDto = new ErrorDto(MessageError.UnprocessedOrder,
+                Fields: validationResults.Select(x => new Field(x.MemberNames.First(), x.ErrorMessage!)));
+
+        return isValid;
     }
 }

@@ -1,6 +1,6 @@
 namespace OrderAccumulator.Worker.Constants;
 
-public class Side
+public static class Side
 {
     public const char Buy = 'B';
     public const char Sell = 'S';

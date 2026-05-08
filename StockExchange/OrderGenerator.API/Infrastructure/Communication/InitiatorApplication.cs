@@ -2,8 +2,8 @@ namespace OrderGenerator.API.Infrastructure.Communication;
 
 public interface IInitiatorApplication : IApplication
 {
-    event Action<OrderReportDto> OnOrderReportReceived;
-    bool SendOrder(OrderRequestDto orderDto);
+    event Action<OrderReportDto> OnProcessOrderReportReceived;
+    Result SendOrder(OrderRequestDto orderDto, Guid codeOrder);
 }
 
 public class InitiatorApplication : MessageCracker, IInitiatorApplication
@@ -11,7 +11,7 @@ public class InitiatorApplication : MessageCracker, IInitiatorApplication
     private Session Session { get; set; }
     private bool IsConnected { get; set; }
     
-    public event Action<OrderReportDto> OnOrderReportReceived;
+    public event Action<OrderReportDto> OnProcessOrderReportReceived;
     
     public void ToAdmin(QuickFix.Message message, SessionID sessionID) { }
     public void FromAdmin(QuickFix.Message message, SessionID sessionID) { }
@@ -28,21 +28,27 @@ public class InitiatorApplication : MessageCracker, IInitiatorApplication
         Session = Session.LookupSession(sessionID)!;
         
         if (Session is null)
-            throw new ApplicationException("Session QuickFIX not found.");
+            throw new ApplicationException(MessageError.SessionQuickFIXNotFound);
     }
 
     public void OnMessage(ExecutionReport report, SessionID sessionID) =>
-        OnOrderReportReceived.Invoke(ConvertReport(report));
+        OnProcessOrderReportReceived.Invoke(ConvertReport(report));
 
-    public bool SendOrder(OrderRequestDto orderDto) =>
-        IsConnected
-            ? Session.SendToTarget(PrepareShipmentOrder(orderDto), Session.SessionID)
-            : throw new ApplicationException("It is not possible to place a new order.");
+    public Result SendOrder(OrderRequestDto orderDto, Guid codeOrder)
+    {
+        if (!IsConnected) 
+            return Result.Fail(MessageError.NotPossibleNewOrder);
+        
+        var send = Session.SendToTarget(PrepareShipmentOrder(orderDto, codeOrder), Session.SessionID);
+            
+        return send ? Result.Ok() : Result.Fail(MessageError.NotPossibleNewOrder);
+    }
+       
     
-    private static NewOrderSingle PrepareShipmentOrder(OrderRequestDto orderRequestDto)
+    private static NewOrderSingle PrepareShipmentOrder(OrderRequestDto orderRequestDto, Guid codeOrder)
     {
         var order = new NewOrderSingle(
-            new ClOrdID(Guid.NewGuid().ToString()),
+            new ClOrdID(codeOrder.ToString()),
             new Symbol(orderRequestDto.Symbol!),
             PrepareSide(orderRequestDto),
             new TransactTime(DateTime.Now),
@@ -67,6 +73,7 @@ public class InitiatorApplication : MessageCracker, IInitiatorApplication
     private static OrderReportDto ConvertReport(ExecutionReport report) =>
         new()
         {
+            CodeOrder = Guid.Parse(report.ClOrdID.Value),
             Amount = report.IsSetOrderQty() ? report.OrderQty.Value : 0,
             Symbol = report.IsSetSymbol() ? report.Symbol.Value : string.Empty,
             Price = report.IsSetPrice() ? report.Price.Value : 0,

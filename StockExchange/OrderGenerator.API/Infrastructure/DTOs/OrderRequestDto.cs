@@ -3,7 +3,8 @@ namespace OrderGenerator.API.Infrastructure.DTOs;
 public class OrderRequestDto
 {
     [Required(ErrorMessage = "Symbol is required.")]
-    [MaxLength(10, ErrorMessage = "The symbol is too long. It should be a maximum of 10 characters.")]
+    [MaxLength(6, ErrorMessage = "The symbol is too long. It should be a maximum of 6 characters.")]
+    [RegularExpression("^[A-Z]{4}[0-9]{1}F?$", ErrorMessage = "Invalid ticker format.")]
     public string? Symbol { get; set; }
     
     [Required(ErrorMessage = "Side is required.")] 
@@ -11,7 +12,7 @@ public class OrderRequestDto
     public char? Side { get; set; }
     
     [Required(ErrorMessage = "Amount is required.")]
-    [Range(1, 100000,  ErrorMessage = "Price must be between 1 and 100000.")]
+    [Range(1, 100000,  ErrorMessage = "Amount must be between 1 and 100000.")]
     public int? Amount { get; set; }
     
     [Required(ErrorMessage = "Price is required.")]

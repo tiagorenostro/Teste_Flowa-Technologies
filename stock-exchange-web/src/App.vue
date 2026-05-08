@@ -1,74 +1,83 @@
 <template>
   <main class="app-wrapper">
     <header class="app-header">
-      <h1>Trading<span>Terminal</span></h1>
+      <h1>Trading <span>Terminal</span></h1>
       <div class="status-dot" :class="{ 'connected': isConnected }">
         {{ isConnected ? 'Online' : 'Offline' }}
       </div>
     </header>
 
     <div class="main-layout">
-      <section class="order-card">
-        <div class="card-header">Nova Ordem</div>
-        <div class="form-body">
-          <div class="input-field">
-            <label>Ativo</label>
-            <input v-model="order.symbol" @input="order.symbol = order.symbol.toUpperCase()" placeholder="PETR4" />
-          </div>
-          
-          <div class="row">
+      <aside class="sidebar">
+        <section class="order-card">
+          <div class="card-header">New Order</div>
+          <div class="form-body">
             <div class="input-field">
-              <label>Preço</label>
-              <input 
-                type="text"
-                :value="order.price?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })"
-                @input="handlePriceInput"
-                placeholder="0,00"
-                inputmode="decimal"
-              />
+              <label>Ticker</label>
+              <input :class="{ 'input-error': errors.Symbol }" v-model="order.symbol" @input="order.symbol = order.symbol.toUpperCase(); clearError('Symbol')" maxlength="6" placeholder="PETR4" />
+              <span v-if="errors.Symbol" class="error-message">{{ errors.Symbol }}</span>
             </div>
-            <div class="input-field">
-              <label>Quantidade</label>
-              <input v-model.number="order.amount" type="number" placeholder="100" />
+            
+            <div class="row">
+              <div class="input-field">
+                <label>Price</label>
+                <input type="text" :value="order.price?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })" @input="handlePriceInput" placeholder="0,00" />
+              </div>
+              <div class="input-field">
+                <label>Amount</label>
+                <input v-model.number="order.amount" type="number" placeholder="100" />
+              </div>
             </div>
-          </div>
 
-          <div class="button-group">
-            <button @click="sendOrder('B')" class="btn btn-buy">COMPRAR</button>
-            <button @click="sendOrder('S')" class="btn btn-sell">VENDER</button>
+            <div class="button-group">
+              <button @click="sendOrder('B')" class="btn btn-buy">BUY</button>
+              <button @click="sendOrder('S')" class="btn btn-sell">SELL</button>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        <section class="share-card">
+          <div class="card-header">Your Wallet</div>
+          <div class="share-list">
+            <div v-for="pos in shares" :key="pos.symbol" class="share-item">
+              <div class="pos-info">
+                <span class="pos-symbol">{{ pos.symbol }}</span>
+                <span class="pos-qty">{{ pos.totalAmount }} un.</span>
+              </div>
+              <div class="pos-values">
+                <span class="pos-exposure">R$ {{ pos.financialExposure.toLocaleString('pt-BR', {minDigits: 2}) }}</span>
+                <span class="pos-avg">Average: R$ {{ pos.averagePrice.toLocaleString('pt-BR', {minDigits: 2}) }}</span>
+              </div>
+            </div>
+            <div v-if="shares.length === 0" class="empty-mini">No open positions</div>
+          </div>
+        </section>
+      </aside>
 
       <section class="orders-section">
-        <div class="card-header">Ordens Recentes</div>
+        <div class="card-header">Recent Orders</div>
         <div class="table-container">
           <table>
             <thead>
               <tr>
-                <th>Ativo</th>
-                <th>Operação</th>
-                <th>Preço</th>
-                <th>Qtd</th>
+                <th>Share</th>
+                <th>Operation</th>
+                <th>Price</th>
+                <th>Amount</th>
                 <th>Status</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(ordem, index) in ordensExecutadas" :key="index" class="order-row">
-                <td class="symbol-col">{{ ordem.symbol }}</td>
-                <td :class="ordem.side === 'B' ? 'text-buy' : 'text-sell'">
-                  {{ ordem.side === 'B' ? 'COMPRA' : 'VENDA' }}
-                </td>
-                <td class="font-mono">R$ {{ ordem.price.toLocaleString('pt-BR', {minDigits: 2}) }}</td>
-                <td class="font-mono">{{ ordem.amount }}</td>
+              <tr v-for="(order, index) in ordersExecuted" :key="index" class="order-row">
+                <td class="symbol-col">{{ order.symbol }}</td>
+                <td :class="order.side === 'B' ? 'text-buy' : 'text-sell'">{{ order.side === 'B' ? 'BUY' : 'SELL' }}</td>
+                <td class="font-mono">R$ {{ order.price.toLocaleString('pt-BR') }}</td>
+                <td class="font-mono">{{ order.amount }}</td>
                 <td>
-                  <span class="badge" :class="ordem.status === 'E' ? 'bg-success' : 'bg-error'">
-                    {{ ordem.status === 'E' ? 'Executada' : 'Rejeitada' }}
+                  <span class="badge" :class="order.status === 'E' ? 'bg-success' : 'bg-error'">
+                    {{ order.status === 'E' ? 'Executed' : 'Rejected' }}
                   </span>
                 </td>
-              </tr>
-              <tr v-if="ordensExecutadas.length === 0">
-                <td colspan="5" class="empty-msg">Aguardando mensagens do mercado...</td>
               </tr>
             </tbody>
           </table>
@@ -83,7 +92,9 @@
 import { ref, reactive, onMounted, onUnmounted, computed } from 'vue'
 import * as signalR from '@microsoft/signalr'
 
-const ordensExecutadas = ref([])
+const errors = ref({})
+const ordersExecuted = ref([])
+const shares = ref([])
 const isConnected = ref(false)
 
 const order = reactive({
@@ -94,25 +105,34 @@ const order = reactive({
 
 let connection = null;
 
+async function fetchShares() {
+  try {
+    const response = await fetch('http://localhost:5151/api/share')
+    if (response.ok) {
+      shares.value = await response.json()
+    }
+  } catch (e) {
+    alert("Error searching for wallet.")
+  }
+}
+
 onMounted(() => {
-    connection = new signalR.HubConnectionBuilder()
-        .withUrl("http://localhost:5151/tradingHub")
-        .withAutomaticReconnect()
-        .build();
+  fetchShares();
+  connection = new signalR.HubConnectionBuilder()
+      .withUrl("http://localhost:5151/tradingHub")
+      .withAutomaticReconnect()
+      .build();
 
-    connection.off("OrderReportReceived");
+  connection.off("OrderReportReceived");
 
-    connection.on("OrderReportReceived", (report) => {
-        ordensExecutadas.value.unshift(report);
-    });
+  connection.on("OrderReportReceived", (report) => {
+      ordersExecuted.value.unshift(report);
+      fetchShares();
+  });
 
-    connection.start()
-      .then(() => {
-        isConnected.value = true;
-      })
-      .catch(err => {
-        isConnected.value = false;
-      });
+  connection.start()
+    .then(() => isConnected.value = true)
+    .catch(err => isConnected.value = false);
 });
 
 onUnmounted(() => {
@@ -122,6 +142,8 @@ onUnmounted(() => {
 });
 
 function handlePriceInput(event) {
+  clearError('Price')
+
   let value = event.target.value.replace(/\D/g, "");
 
   if (value.length > 0) {
@@ -139,8 +161,10 @@ function handlePriceInput(event) {
 }
 
 async function sendOrder(type) {
+  errors.value = {}
+
   if (!order.symbol || !order.price || !order.amount) {
-    alert("Preencha todos os campos!")
+    alert("Fill in all the fields.")
     return
   }
 
@@ -158,22 +182,38 @@ async function sendOrder(type) {
       body: JSON.stringify(payload)
     })
 
-    if (response.status === 201 || response.status === 204) {
-      alert("Ordem enviada com sucesso!");
+    if (response.status >= 200 && response.status <= 299) {
+      alert("Order sent successfully!");
       resetForm();
       return;
     }
     else {
-      alert("Erro: " + result.error)
+      const errorData = await response.json();
+      
+      alert(errorData.details);
+
+      if (errorData.fields) {
+        errorData.fields.forEach(field => {
+          errors.value[field.name] = field.message;
+        });
+      }
     }
   } catch (error) {
-    alert("Não foi possível enviar a sua ordem.")
+    alert("We were unable to send your order.")
   }
 }
+
+function clearError(fieldName) {
+  if (errors.value[fieldName]) {
+    delete errors.value[fieldName];
+  }
+}
+
 function resetForm(){
-  order.symbol = '';
-  order.price = null;
-  order.amount = null;
+  errors.value = {}
+  order.symbol = ''
+  order.price = null
+  order.amount = null
 }
 </script>
 
@@ -295,5 +335,57 @@ td {
 input::placeholder {
   text-align: center;
 }
+
+.error-message {
+  color: #dc3545;
+  font-size: 11px;
+  margin-top: 4px;
+  display: block;
+  text-align: center;
+}
+
+.input-error {
+  border-color: #dc3545 !important;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 11px;
+  margin-top: 4px;
+  display: block;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.main-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 20px;
+}
+
+.share-card {
+  margin-top: 20px;
+  background: #2c3e50;
+  color: white;
+  border-radius: 8px;
+  padding: 15px;
+}
+
+.share-card .card-header { color: #ecf0f1; border-bottom: 1px solid #34495e; padding-bottom: 10px; }
+
+.share-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #34495e;
+}
+
+.pos-symbol { font-weight: bold; color: #3498db; display: block; }
+.pos-qty { font-size: 12px; color: #bdc3c7; }
+.pos-values { text-align: right; }
+.pos-exposure { display: block; font-weight: bold; color: #2ecc71; }
+.pos-avg { font-size: 10px; color: #bdc3c7; }
+
+.empty-mini { font-size: 12px; color: #7f8c8d; text-align: center; padding: 20px; }
 
 </style>

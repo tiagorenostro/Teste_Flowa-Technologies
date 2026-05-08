@@ -1,3 +1,4 @@
+global using System.Collections.Concurrent;
 global using System.ComponentModel.DataAnnotations;
 global using System.Net.Mime;
 global using System.Text.Encodings.Web;
@@ -11,7 +12,10 @@ global using QuickFix.Fields;
 global using QuickFix.FIX44;
 global using QuickFix.Store;
 global using OrderGenerator.API;
+global using OrderGenerator.API.Domain;
+global using OrderGenerator.API.Domain.Common;
 global using OrderGenerator.API.Constants;
+global using OrderGenerator.API.Infrastructure.Database;
 global using OrderGenerator.API.Infrastructure.Communication;
 global using OrderGenerator.API.Infrastructure.Configuration;
 global using OrderGenerator.API.Infrastructure.DTOs;

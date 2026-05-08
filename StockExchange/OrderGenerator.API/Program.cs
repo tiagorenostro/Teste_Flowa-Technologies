@@ -18,11 +18,12 @@ builder.Services.AddSingleton<IInitiator>(sp =>
 
 builder.Services.AddSingleton<ITradingGateway, TradingGateway>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IShareService, ShareService>();
 builder.Services.AddSignalR();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(configuracao.CorsPolicy!,
-        policy =>
+        configurePolicy: policy =>
         {
             policy.WithOrigins(configuracao.UrlStockExhangeWeb!)
                 .AllowAnyHeader()
@@ -47,17 +48,11 @@ app.UseExceptionHandler(applicationBuilder =>
 
         if (contextFeature is not null)
         {
+            var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogError(contextFeature.Error, MessageError.ErrorGeneric);
+            
             context.Response.ContentType = MediaTypeNames.Application.Json;
             context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-            
-            var problemDetail = new ProblemDetails
-            {
-                Status = context.Response.StatusCode,
-                Title = "Ocorreu um erro.",
-                Instance = $"{context.Request.Method} {context.Request.Path}",
-                Detail = contextFeature.Error.Message,
-                Type = string.Empty
-            };
             
             var options = new JsonSerializerOptions
             {
@@ -66,7 +61,7 @@ app.UseExceptionHandler(applicationBuilder =>
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             };
 
-            await context.Response.WriteAsJsonAsync(JsonSerializer.Serialize(problemDetail, options));
+            await context.Response.WriteAsJsonAsync(new ErrorDto(MessageError.RequestNotProcessed, []), options);
         }
     });
 });

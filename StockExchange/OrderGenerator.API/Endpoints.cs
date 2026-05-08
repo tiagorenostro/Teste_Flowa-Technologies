@@ -9,6 +9,7 @@ public static class Endpoints
         var route = app.MapGroup(PrefixApi);
         route.AddRoutePing();
         route.AddRouteOrder();
+        route.AddRouteShare();
         return app;
     }
 }
