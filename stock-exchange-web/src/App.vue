@@ -149,7 +149,7 @@ onMounted(() => {
 
       showToast(
         title, 
-        `${action} de ${report.amount} un. de ${report.symbol} a R$ ${report.price.toLocaleString('pt-BR')}`,
+        `${action} ${report.amount} unit. from ${report.symbol} to R$ ${report.price.toLocaleString('pt-BR')}`,
         status
       );
 

@@ -26,7 +26,7 @@ public class InitiatorApplication : MessageCracker, IInitiatorApplication
         Session = Session.LookupSession(sessionID)!;
         
         if (Session is null)
-            throw new ApplicationException(MessageError.SessionQuickFIXNotFound);
+            throw new ApplicationException(MessageError.SessionQuickFixNotFound);
     }
 
     public void OnMessage(ExecutionReport report, SessionID sessionID) =>

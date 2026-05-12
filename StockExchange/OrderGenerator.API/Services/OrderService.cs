@@ -37,7 +37,7 @@ public class OrderService(IShareService shareService,
         var order = GetByCode(dto.CodeOrder);
         order.Process(dto.Status);
         
-        shareService.Process(order);
+        shareService.ProcessOperation(order);
     }
 
     private static OrderResponseDto ConvertToDto(Order order) => new(order);

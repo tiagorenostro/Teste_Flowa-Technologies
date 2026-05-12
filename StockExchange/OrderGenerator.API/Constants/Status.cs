@@ -2,10 +2,9 @@ namespace OrderGenerator.API.Constants;
 
 public static class Status
 {
-    public const char New = 'N';
-    
     #region Order
     
+    public const char New = 'N';
     public const char Liquidation = 'L';
     public const char Executed = 'E';
     public const char Rejected = 'R';
@@ -17,6 +16,7 @@ public static class Status
     
     public const char Flat = 'F';
     public const char Long = 'L';
+    public const char Short = 'S';
     
     #endregion
 }

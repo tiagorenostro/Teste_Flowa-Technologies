@@ -7,7 +7,7 @@ public static class MessageError
     public const string UnprocessedOrder = "The order cannot be processed.";
     public const string OrderNotFound = "Order not found.";
     public const string ShareNotFound = "Share not found.";
-    public const string SessionQuickFIXNotFound = "Session QuickFIX not found.";
+    public const string SessionQuickFixNotFound = "Session QuickFIX not found.";
     public const string NotPossibleNewOrder = "It is not possible to place a new order.";
     public const string NotHavingAssetsForSale = "It is not possible to sell an asset that is not in your portfolio.";
     public const string OperationValueGreaterThanTheTotalAssetValue =

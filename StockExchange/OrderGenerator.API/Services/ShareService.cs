@@ -3,7 +3,7 @@ namespace OrderGenerator.API.Services;
 public interface IShareService
 {
     void Save(Share share);
-    void Process(Order order);
+    void ProcessOperation(Order order);
     Result<ShareResponseDto> GetShare(Guid code);
     IEnumerable<ShareResponseDto> GetShares();
     Result<Share> CreateShareIfNotExist(NewOrderRequestDto dto);
@@ -12,12 +12,10 @@ public interface IShareService
 
 public class ShareService : IShareService
 {
-    public void Process(Order order)
+    public void ProcessOperation(Order order)
     {
         var share = GetBySymbol(order.Symbol);
         share.ProcessOrder(order);
-        
-        SetActiveAsNoPosition(share);
     }
 
     public Result<ShareResponseDto> GetShare(Guid code) =>
@@ -56,12 +54,6 @@ public class ShareService : IShareService
     
     public void Save(Share share) =>
         InMemoryDb.Share[share.Code] = share;
-    
-    private static void SetActiveAsNoPosition(Share share)
-    {
-        if (share.IsNoPosition())
-            share.SetActiveAsNoPosition();
-    }
 
     public Result ValidateTransactionValueAgainstTotalQuantity(Share share, NewOrderRequestDto dto) =>
         dto.IsSellOrderRequest() && dto.Amount > share.TotalAmount ? 

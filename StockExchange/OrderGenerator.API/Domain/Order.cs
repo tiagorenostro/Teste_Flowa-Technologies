@@ -31,9 +31,8 @@ public class Order
         OperatingDatetime = DateTime.UtcNow;
     }
 
-    public bool IsOrderRejected() => Status == Constants.Status.Rejected;
     public bool IsOrderSell() => Side == Constants.Side.Sell;
-    public void SetAmount(int amount) => Amount = amount;
+    public bool IsOrderRejected() => Status == Constants.Status.Rejected;
     public void Process(char status) => Status = status;
     public void LinkShare(Guid codeShare) => CodeShare = codeShare;
 
