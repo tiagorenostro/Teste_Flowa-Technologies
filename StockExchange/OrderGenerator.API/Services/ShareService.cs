@@ -12,11 +12,9 @@ public interface IShareService
 
 public class ShareService : IShareService
 {
-    public void ProcessOperation(Order order)
-    {
-        var share = GetBySymbol(order.Symbol);
-        share.ProcessOrder(order);
-    }
+    public void ProcessOperation(Order order) => 
+        GetBySymbol(order.Symbol)
+            .ProcessOrder(order);
 
     public Result<ShareResponseDto> GetShare(Guid code) =>
         InMemoryDb.Share.TryGetValue(code, out var share)
@@ -39,12 +37,7 @@ public class ShareService : IShareService
 
         var createShareResult = Share.Create(dto.Symbol!);
 
-        if (!createShareResult.Success)
-            return createShareResult;
-
-        share = createShareResult.Value;
-        
-        return Result<Share>.Ok(share);
+        return !createShareResult.Success ? createShareResult : Result<Share>.Ok(createShareResult.Value);
     }
     
     private static ShareResponseDto ConvertToDto(Share share) => new(share);

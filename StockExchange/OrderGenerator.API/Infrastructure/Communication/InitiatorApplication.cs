@@ -30,7 +30,7 @@ public class InitiatorApplication : MessageCracker, IInitiatorApplication
     }
 
     public void OnMessage(ExecutionReport report, SessionID sessionID) =>
-        OnProcessOrderReportReceived.Invoke(ConvertReport(report));
+        OnProcessOrderReportReceived.Invoke(CreateOrderReport(report));
 
     public Result SendOrder(Order order)
     {
@@ -67,7 +67,7 @@ public class InitiatorApplication : MessageCracker, IInitiatorApplication
             _ => new QuickFix.Fields.Side()
         };
 
-    private static OrderReportDto ConvertReport(ExecutionReport report) =>
+    private static OrderReportDto CreateOrderReport(ExecutionReport report) =>
         new(Guid.Parse(report.ClOrdID.Value),
             report.IsSetSymbol() ? report.Symbol.Value : string.Empty,
             report.IsSetOrderQty() ? report.OrderQty.Value : 0,
