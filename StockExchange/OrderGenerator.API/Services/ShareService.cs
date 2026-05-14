@@ -12,6 +12,9 @@ public interface IShareService
 
 public class ShareService : IShareService
 {
+    public void Save(Share share) =>
+        InMemoryDb.Share[share.Code] = share;
+    
     public void ProcessOperation(Order order) => 
         GetBySymbol(order.Symbol)
             .ProcessOrder(order);
@@ -39,17 +42,14 @@ public class ShareService : IShareService
 
         return !createShareResult.Success ? createShareResult : Result<Share>.Ok(createShareResult.Value);
     }
-    
-    private static ShareResponseDto ConvertToDto(Share share) => new(share);
-
-    private static Share GetBySymbol(string symbol) =>
-        InMemoryDb.Share.FirstOrDefault(x => x.Value.Symbol == symbol).Value;
-    
-    public void Save(Share share) =>
-        InMemoryDb.Share[share.Code] = share;
 
     public Result ValidateTransactionValueAgainstTotalQuantity(Share share, NewOrderRequestDto dto) =>
         dto.IsSellOrderRequest() && dto.Amount > share.TotalAmount ? 
             Result.Fail(ErrorType.Validation, MessageError.OperationValueGreaterThanTheTotalAssetValue) : 
             Result.Ok();
+    
+    private static ShareResponseDto ConvertToDto(Share share) => new(share);
+
+    private static Share GetBySymbol(string symbol) =>
+        InMemoryDb.Share.FirstOrDefault(x => x.Value.Symbol == symbol).Value;
 }

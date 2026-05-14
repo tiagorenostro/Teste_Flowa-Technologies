@@ -16,7 +16,7 @@ public static class RouteExtensions
     public static bool IsInvalid<T>(this T dto, out IResult? errorResponse) where T : class
     {
         var validationResults = new List<ValidationResult>();
-        var isValid = Validator.TryValidateObject(dto!, new ValidationContext(dto!), validationResults, true);
+        var isValid = Validator.TryValidateObject(dto, new ValidationContext(dto), validationResults, true);
 
         if (isValid)
         {
@@ -33,17 +33,15 @@ public static class RouteExtensions
     
     private static IResult MapError(Error error)
     {
-        var errorDto = CreateErrorResponse(error);
+        var errorDto = new ErrorDto(error.Message, error.Fields.Select(x => new FieldDto(x.Name, x.Message)));
 
         return error.ErrorType switch
         {
             ErrorType.NotFound => TypedResults.NotFound(errorDto),
             ErrorType.Validation => TypedResults.BadRequest(errorDto),
             ErrorType.Unexpected => TypedResults.InternalServerError(errorDto),
+            ErrorType.ExternalError => TypedResults.Json(errorDto, statusCode: (int)HttpStatusCode.BadGateway),
             _ => TypedResults.UnprocessableEntity(errorDto)
         };
     }
-    
-    private static ErrorDto CreateErrorResponse(Error error) =>
-        new(error.Message, error.Fields.Select(x => new FieldDto(x.Name, x.Message)));
 }

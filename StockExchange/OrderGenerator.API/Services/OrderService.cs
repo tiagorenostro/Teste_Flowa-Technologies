@@ -57,21 +57,6 @@ public class OrderService(IShareService shareService,
         return Result.Ok();
     }
 
-    private Result SaveOrderAndShare(Share share, Order order)
-    {
-        try
-        {
-            shareService.Save(share);
-            InMemoryDb.Order[order.Code] = order;
-            return Result.Ok();
-        }
-        catch (Exception e)
-        {
-            logger.LogError(e, e.Message);
-            return Result.Fail(ErrorType.Unexpected, MessageError.UnprocessedOrder);
-        }
-    }
-
     private static Result<Order> CreateOrder(NewOrderRequestDto dto)
     {
         var newOrderResult = Order.CreateOrder(dto.Symbol!, dto.Amount.GetValueOrDefault(), 
@@ -97,6 +82,21 @@ public class OrderService(IShareService shareService,
         {
             logger.LogError(e, e.Message);
             return Result.Fail(ErrorType.Unexpected, MessageError.NotPossibleNewOrder);
+        }
+    }
+    
+    private Result SaveOrderAndShare(Share share, Order order)
+    {
+        try
+        {
+            shareService.Save(share);
+            InMemoryDb.Order[order.Code] = order;
+            return Result.Ok();
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, e.Message);
+            return Result.Fail(ErrorType.Unexpected, MessageError.UnprocessedOrder);
         }
     }
 }

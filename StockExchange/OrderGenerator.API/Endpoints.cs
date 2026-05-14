@@ -10,6 +10,7 @@ public static class Endpoints
         route.AddRoutePing();
         route.AddRouteOrder();
         route.AddRouteShare();
+        
         return app;
     }
 }

@@ -1,5 +1,6 @@
 global using System.Collections.Concurrent;
 global using System.ComponentModel.DataAnnotations;
+global using System.Net;
 global using System.Net.Mime;
 global using System.Text.Encodings.Web;
 global using System.Text.Json;
