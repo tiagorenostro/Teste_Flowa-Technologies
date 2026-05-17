@@ -1,6 +1,11 @@
 namespace OrderGenerator.API.Infrastructure.Configuration;
 
-public sealed record AppSettings(string? PatternHub,
-    string? CorsPolicy, 
+public sealed record AppSettings(
+    string? PatternHub,
+    string? CorsPolicy,
     string? UrlStockExhangeWeb,
-    string? PathFileConfigurationQuickFIX);
+    string? Role,
+    string? PathFileConfigurationQuickFIX)
+{
+    public bool IsAcceptor() => string.Equals(Role, "Acceptor", StringComparison.OrdinalIgnoreCase);
+}

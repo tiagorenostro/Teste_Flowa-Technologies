@@ -12,7 +12,6 @@ global using Microsoft.AspNetCore.SignalR;
 global using QuickFix;
 global using QuickFix.Fields;
 global using QuickFix.FIX44;
-global using QuickFix.Store;
 global using OrderCommon.DependencyInjection;
 global using OrderGenerator.API;
 global using OrderGenerator.API.Constants;

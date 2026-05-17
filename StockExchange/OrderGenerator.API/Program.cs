@@ -3,16 +3,8 @@ var appSettings = builder.Configuration.GetSection(nameof(AppSettings)).Get<AppS
 
 builder.Logging.AddConsole();
 builder.Services.AddSingleton<IInitiatorApplication, InitiatorApplication>();
-builder.Services.AddQuickFIXConfiguration(appSettings.PathFileConfigurationQuickFIX!);
-builder.Services.AddSingleton<IInitiator>(serviceProvider =>
-{
-    var initiatorApplication = serviceProvider.GetRequiredService<IInitiatorApplication>();
-    var messageStoreFactory = serviceProvider.GetRequiredService<IMessageStoreFactory>();
-    var sessionSettings = serviceProvider.GetRequiredService<SessionSettings>();
-    var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
-
-    return new QuickFix.Transport.SocketInitiator(initiatorApplication, messageStoreFactory, sessionSettings, loggerFactory);
-});
+builder.Services.AddQuickFIXConfiguration<IInitiatorApplication>(appSettings.PathFileConfigurationQuickFIX!, 
+    isAcceptor: appSettings.IsAcceptor());
 builder.Services.AddSingleton<ITradingGateway, TradingGateway>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IShareService, ShareService>();
