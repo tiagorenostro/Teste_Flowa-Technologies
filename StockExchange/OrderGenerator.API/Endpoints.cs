@@ -4,13 +4,13 @@ public static class Endpoints
 {
     private const string PrefixApi = "api";
 
-    public static WebApplication AddEndpoints(this WebApplication app)
+    public static WebApplication AddEndpoints(this WebApplication webApplication)
     {
-        var route = app.MapGroup(PrefixApi);
-        route.AddRoutePing();
-        route.AddRouteOrder();
-        route.AddRouteShare();
+        var routeGroupBuilder = webApplication.MapGroup(PrefixApi);
+        routeGroupBuilder.AddRoutePing();
+        routeGroupBuilder.AddRouteOrder();
+        routeGroupBuilder.AddRouteShare();
         
-        return app;
+        return webApplication;
     }
 }

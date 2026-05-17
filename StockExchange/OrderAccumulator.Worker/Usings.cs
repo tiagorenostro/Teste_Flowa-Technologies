@@ -15,3 +15,4 @@ global using OrderAccumulator.Worker.Infrastructure.Database;
 global using OrderAccumulator.Worker.Interfaces;
 global using OrderAccumulator.Worker.Services;
 global using OrderAccumulator.Worker.Worker;
+global using OrderCommon.DependencyInjection;

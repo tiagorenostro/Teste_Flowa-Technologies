@@ -1,4 +1,4 @@
-namespace OrderGenerator.API.Infrastructure.DTOs;
+namespace OrderGenerator.API.Messagings.DTOs;
 
 public sealed record NewOrderRequestDto(
     [Required(ErrorMessage = MessageError.SymbolRequired)] string? Symbol,
@@ -6,5 +6,5 @@ public sealed record NewOrderRequestDto(
     [Required(ErrorMessage = MessageError.AmountRequired)] int? Amount,
     [Required(ErrorMessage = MessageError.PriceRequired)] decimal? Price)
 {
-    public bool IsSellOrderRequest() => Side == Constants.Side.Sell;
+    public bool IsSellOrderRequest() => Side == OrderCommon.Constants.Side.Sell;
 }

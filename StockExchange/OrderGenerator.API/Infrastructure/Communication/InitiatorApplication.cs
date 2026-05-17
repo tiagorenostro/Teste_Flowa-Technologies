@@ -59,12 +59,12 @@ public class InitiatorApplication : MessageCracker, IInitiatorApplication
         return newOrderSingle;
     }
 
-    private static QuickFix.Fields.Side PrepareSide(char side) =>
+    private static Side PrepareSide(char side) =>
         side switch
         {
-            Constants.Side.Buy => new QuickFix.Fields.Side(QuickFix.Fields.Side.BUY),
-            Constants.Side.Sell => new QuickFix.Fields.Side(QuickFix.Fields.Side.SELL),
-            _ => new QuickFix.Fields.Side()
+            OrderCommon.Constants.Side.Buy => new Side(Side.BUY),
+            OrderCommon.Constants.Side.Sell => new Side(Side.SELL),
+            _ => new Side()
         };
 
     private static OrderReportDto CreateOrderReport(ExecutionReport report) =>
@@ -86,7 +86,7 @@ public class InitiatorApplication : MessageCracker, IInitiatorApplication
     private static char DefineSide(ExecutionReport report) =>
         report.Side.Value switch
         {
-            QuickFix.Fields.Side.BUY => Constants.Side.Buy,
-            QuickFix.Fields.Side.SELL => Constants.Side.Sell
+            Side.BUY => OrderCommon.Constants.Side.Buy,
+            Side.SELL => OrderCommon.Constants.Side.Sell
         };
 }

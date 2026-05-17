@@ -31,7 +31,8 @@ public readonly struct Result<T>
     }
     
     public static Result<T> Ok(T value) => new(true, value, default);
-    public static Result<T> Fail(ErrorType errorType, string messageError) => new(false, default!, new Error(errorType, messageError, []));
+    public static Result<T> Fail(ErrorType errorType, string messageError) => 
+        new(false, default!, new Error(errorType, messageError, []));
     public static Result<T> Fail(ErrorType errorType, string messageError, IEnumerable<Field> fields) => 
         new(false, default!, new Error(errorType, messageError, fields));
     public static Result<T> Fail(Error error) => new(false, default!, error);

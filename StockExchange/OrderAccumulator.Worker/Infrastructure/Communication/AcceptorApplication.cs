@@ -46,11 +46,11 @@ public class AcceptorApplication(IOrderAccumulatorService orderAccumulatorServic
     private static NewOrder ConvertNewSingleOrderToNewOrder(NewOrderSingle order) =>
         new(order.Symbol.Value, DefineSide(order.Side), TotalValue: order.OrderQty.Value * order.Price.Value);
 
-    private static char DefineSide(QuickFix.Fields.Side side) =>
+    private static char DefineSide(Side side) =>
         side.Value switch
         {
-            QuickFix.Fields.Side.BUY => Constants.Side.Buy,
-            QuickFix.Fields.Side.SELL => Constants.Side.Sell,
+            Side.BUY => OrderCommon.Constants.Side.Buy,
+            Side.SELL => OrderCommon.Constants.Side.Sell,
             _ => throw new ArgumentOutOfRangeException(nameof(side), side, UnmappedSide)
         };
 }

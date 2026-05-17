@@ -1,4 +1,4 @@
-namespace OrderGenerator.API.Infrastructure.Enums;
+namespace OrderGenerator.API.Enums;
 
 public enum ErrorType
 {

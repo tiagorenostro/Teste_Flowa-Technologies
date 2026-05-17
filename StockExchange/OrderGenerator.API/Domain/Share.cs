@@ -84,7 +84,7 @@ public class Share
     {
         if (symbol!.Length is < Constants.Symbol.MinimumSymbolSize or > Constants.Symbol.MaximumSymbolSize)
             return Result<Share>.Fail(new Error(ErrorType.Validation, MessageError.UnprocessedOrder,
-                [new Field(nameof(Symbol), MessageError.SymbolIsLong)]));
+                fields: [new Field(nameof(Symbol), MessageError.SymbolIsLong)]));
         
         return Result<Share>.Ok(new Share(symbol));
     }

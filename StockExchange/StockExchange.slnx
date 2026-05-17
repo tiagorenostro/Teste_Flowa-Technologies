@@ -1,4 +1,9 @@
 <Solution>
-  <Project Path="OrderAccumulator.Worker\OrderAccumulator.Worker.csproj" />
-  <Project Path="OrderGenerator.API/OrderGenerator.API.csproj" />
+  <Project Path="OrderAccumulator.Worker\OrderAccumulator.Worker.csproj">
+    <BuildDependency Project="OrderCommon/OrderCommon.csproj" />
+  </Project>
+  <Project Path="OrderCommon/OrderCommon.csproj" />
+  <Project Path="OrderGenerator.API/OrderGenerator.API.csproj">
+    <BuildDependency Project="OrderCommon/OrderCommon.csproj" />
+  </Project>
 </Solution>

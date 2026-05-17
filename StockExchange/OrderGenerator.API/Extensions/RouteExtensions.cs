@@ -1,4 +1,4 @@
-namespace OrderGenerator.API.Infrastructure.Extensions;
+namespace OrderGenerator.API.Extensions;
 
 public static class RouteExtensions
 {

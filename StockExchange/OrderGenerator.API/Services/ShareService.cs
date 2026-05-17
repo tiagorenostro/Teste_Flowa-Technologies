@@ -30,7 +30,12 @@ public class ShareService : IShareService
             Result<Share>.Fail(ErrorType.Validation, MessageError.NotHavingAssetsForSale) : 
             Share.Create(dto.Symbol!);
     }
+    
+    private static ShareResponseDto ConvertToDto(Share share) => new(share);
 
+    private static Share GetBySymbol(string symbol) =>
+        InMemoryDb.Share.FirstOrDefault(x => x.Value.Symbol == symbol).Value;
+    
     private static Result<Share> ValidateShare(Share share, NewOrderRequestDto dto) =>
         ValidateTransactionValueAgainstTotalQuantity(share, dto);
 
@@ -38,9 +43,4 @@ public class ShareService : IShareService
         dto.IsSellOrderRequest() && dto.Amount > share.TotalAmount ? 
             Result<Share>.Fail(ErrorType.Validation, MessageError.OperationValueGreaterThanTheTotalAssetValue) : 
             Result<Share>.Ok(share);
-    
-    private static ShareResponseDto ConvertToDto(Share share) => new(share);
-
-    private static Share GetBySymbol(string symbol) =>
-        InMemoryDb.Share.FirstOrDefault(x => x.Value.Symbol == symbol).Value;
 }

@@ -64,9 +64,9 @@ public class OrderService(IShareService shareService,
         {
             return tradingGateway.SendOrder(order);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            logger.LogError(e, e.Message);
+            logger.LogError(ex, ex.Message);
             return Result.Fail(ErrorType.Unexpected, MessageError.NotPossibleNewOrder);
         }
     }
@@ -79,9 +79,9 @@ public class OrderService(IShareService shareService,
             InMemoryDb.Order[order.Code] = order;
             return Result.Ok();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            logger.LogError(e, e.Message);
+            logger.LogError(ex, ex.Message);
             return Result.Fail(ErrorType.Unexpected, MessageError.UnprocessedOrder);
         }
     }

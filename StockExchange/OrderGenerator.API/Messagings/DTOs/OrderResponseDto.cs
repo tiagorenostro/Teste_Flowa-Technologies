@@ -1,4 +1,4 @@
-namespace OrderGenerator.API.Infrastructure.DTOs;
+namespace OrderGenerator.API.Messagings.DTOs;
 
 public sealed record OrderResponseDto
 {

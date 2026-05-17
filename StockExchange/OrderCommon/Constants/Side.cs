@@ -1,4 +1,4 @@
-namespace OrderGenerator.API.Constants;
+namespace OrderCommon.Constants;
 
 public static class Side
 {

@@ -31,7 +31,7 @@ public class Order
         OperatingDatetime = DateTime.UtcNow;
     }
 
-    public bool IsOrderSell() => Side == Constants.Side.Sell;
+    public bool IsOrderSell() => Side == OrderCommon.Constants.Side.Sell;
     public bool IsOrderRejected() => Status == Constants.Status.Rejected;
     public void Process(char status) => Status = status;
     public void LinkShare(Guid codeShare) => CodeShare = codeShare;
@@ -46,7 +46,7 @@ public class Order
         if (!SymbolRegex.IsMatch(symbol))
             errors.Add(new Field(nameof(Symbol), MessageError.SymbolIsInvalid));
 
-        if (!new[] { Constants.Side.Buy, Constants.Side.Sell }.Contains(side))
+        if (!new[] { OrderCommon.Constants.Side.Buy, OrderCommon.Constants.Side.Sell }.Contains(side))
             errors.Add(new Field(nameof(Side), MessageError.SideValueNotAllowed));
 
         if (amount is < MinimumAmount or > MaximumAmount)

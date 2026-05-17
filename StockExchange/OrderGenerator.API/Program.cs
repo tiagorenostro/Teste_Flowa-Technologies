@@ -1,31 +1,30 @@
 var builder = WebApplication.CreateBuilder();
+var appSettings = builder.Configuration.GetSection(nameof(AppSettings)).Get<AppSettings>()!;
 
-var configuracao = builder.Configuration.GetSection(nameof(AppSettings)).Get<AppSettings>()!;
-
-builder.Services.AddLogging(logging => logging.AddConsole());
+builder.Logging.AddConsole();
 builder.Services.AddSingleton<IInitiatorApplication, InitiatorApplication>();
-builder.Services.AddSingleton(new SessionSettings(Path.Combine(AppContext.BaseDirectory, configuracao.PathFileConfigurationQuickFIX!)));
-builder.Services.AddSingleton<IMessageStoreFactory, FileStoreFactory>();
-builder.Services.AddSingleton<IInitiator>(sp =>
+builder.Services.AddQuickFIXConfiguration(appSettings.PathFileConfigurationQuickFIX!);
+builder.Services.AddSingleton<IInitiator>(serviceProvider =>
 {
-    var application = sp.GetRequiredService<IInitiatorApplication>();
-    var storeFactory = sp.GetRequiredService<IMessageStoreFactory>();
-    var sessionSettings = sp.GetRequiredService<SessionSettings>();
-    var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+    var initiatorApplication = serviceProvider.GetRequiredService<IInitiatorApplication>();
+    var messageStoreFactory = serviceProvider.GetRequiredService<IMessageStoreFactory>();
+    var sessionSettings = serviceProvider.GetRequiredService<SessionSettings>();
+    var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
 
-    return new QuickFix.Transport.SocketInitiator(application, storeFactory, sessionSettings, loggerFactory);
+    return new QuickFix.Transport.SocketInitiator(initiatorApplication, messageStoreFactory, sessionSettings, loggerFactory);
 });
-
 builder.Services.AddSingleton<ITradingGateway, TradingGateway>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IShareService, ShareService>();
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<ExceptionHandler>();
 builder.Services.AddSignalR();
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(configuracao.CorsPolicy!,
+    options.AddPolicy(appSettings.CorsPolicy!,
         configurePolicy: policy =>
         {
-            policy.WithOrigins(configuracao.UrlStockExhangeWeb!)
+            policy.WithOrigins(appSettings.UrlStockExhangeWeb!)
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials();
@@ -35,35 +34,10 @@ builder.Services.AddCors(options =>
 var app = builder.Build()
     .AddEndpoints();
 
-app.Services.GetRequiredService<IInitiator>()
-    .Start();
+app.UseCors(appSettings.CorsPolicy!);
+app.MapHub<TradingHub>(appSettings.PatternHub!);
+app.UseExceptionHandler();
 
-app.UseCors(configuracao.CorsPolicy!);
-app.MapHub<TradingHub>("/tradingHub");
-app.UseExceptionHandler(applicationBuilder =>
-{
-    applicationBuilder.Run(async context =>
-    {
-        var contextFeature = context.Features.Get<IExceptionHandlerFeature>();
-
-        if (contextFeature is not null)
-        {
-            var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
-            logger.LogError(contextFeature.Error, MessageError.ErrorGeneric);
-            
-            context.Response.ContentType = MediaTypeNames.Application.Json;
-            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-            
-            var options = new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            };
-
-            await context.Response.WriteAsJsonAsync(new ErrorDto(MessageError.RequestNotProcessed, []), options);
-        }
-    });
-});
+app.InitiateCommunication();
 
 await app.RunAsync();
