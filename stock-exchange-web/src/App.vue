@@ -14,18 +14,20 @@
           <div class="form-body">
             <div class="input-field">
               <label>Ticker</label>
-              <input :class="{ 'input-error': errors.Symbol }" v-model="order.symbol" @input="order.symbol = order.symbol.toUpperCase(); clearError('Symbol')" maxlength="6" placeholder="PETR4" />
-              <span v-if="errors.Symbol" class="error-message">{{ errors.Symbol }}</span>
+              <input :class="{ 'input-error': errors.symbol }" v-model="order.symbol" @input="order.symbol = order.symbol.toUpperCase(); clearError('symbol')" maxlength="6" placeholder="PETR4" />
+              <span v-if="errors.symbol" class="error-message">{{ errors.symbol }}</span>
             </div>
             
             <div class="row">
               <div class="input-field">
                 <label>Price</label>
                 <input type="text" :value="order.price?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })" @input="handlePriceInput" placeholder="0,00" />
+                <span v-if="errors.price" class="error-message">{{ errors.price }}</span>
               </div>
               <div class="input-field">
                 <label>Amount</label>
-                <input v-model.number="order.amount" type="number" placeholder="100" />
+                <input :class="clearError('amount')" v-model.number="order.amount" type="number" placeholder="100" />
+                <span v-if="errors.amount" class="error-message">{{ errors.amount }}</span>
               </div>
             </div>
 
@@ -168,7 +170,7 @@ onUnmounted(() => {
 });
 
 function handlePriceInput(event) {
-  clearError('Price')
+  clearError('price')
 
   let value = event.target.value.replace(/\D/g, "");
 

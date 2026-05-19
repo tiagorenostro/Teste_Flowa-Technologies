@@ -11,8 +11,8 @@ public class ShareService : IShareService
 
     public Result<ShareResponseDto> GetShare(Guid code) =>
         InMemoryDb.Share.TryGetValue(code, out var share) ? 
-            Result<ShareResponseDto>.Ok(ConvertToDto(share)) : 
-            Result<ShareResponseDto>.Fail(ErrorType.NotFound, MessageError.ShareNotFound);
+            ConvertToDto(share) : 
+            Error.Create(ErrorType.NotFound, MessageError.ShareNotFound, Field.Empty);
     
     public IEnumerable<ShareResponseDto> GetShares() =>
         InMemoryDb.Share.Where(x => !x.Value.IsNoPosition())
@@ -24,10 +24,10 @@ public class ShareService : IShareService
 
         if (share is not null)
             return ValidateShare(share, dto)
-                .OnSuccess(() => Result<Share>.Ok(share));
+                .OnSuccess(() => share);
         
         return dto.IsSellOrderRequest() ? 
-            Result<Share>.Fail(ErrorType.Validation, MessageError.NotHavingAssetsForSale) : 
+            Error.Create(ErrorType.Validation, MessageError.NotHavingAssetsForSale, Field.Empty) : 
             Share.Create(dto.Symbol!);
     }
     
@@ -41,6 +41,6 @@ public class ShareService : IShareService
 
     private static Result<Share> ValidateTransactionValueAgainstTotalQuantity(Share share, NewOrderRequestDto dto) =>
         dto.IsSellOrderRequest() && dto.Amount > share.TotalAmount ? 
-            Result<Share>.Fail(ErrorType.Validation, MessageError.OperationValueGreaterThanTheTotalAssetValue) : 
-            Result<Share>.Ok(share);
+            Error.Create(ErrorType.Validation, MessageError.OperationValueGreaterThanTheTotalAssetValue, Field.Empty) : 
+            share;
 }

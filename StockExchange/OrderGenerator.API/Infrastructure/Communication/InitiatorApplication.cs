@@ -8,10 +8,10 @@ public interface IInitiatorApplication : IApplication
 
 public class InitiatorApplication : MessageCracker, IInitiatorApplication
 {
-    private Session Session { get; set; }
+    private Session? Session { get; set; }
     private bool IsConnected { get; set; }
     
-    public event Action<OrderReportDto> OnProcessOrderReportReceived;
+    public event Action<OrderReportDto>? OnProcessOrderReportReceived;
     
     public void ToAdmin(QuickFix.Message message, SessionID sessionID) { }
     public void FromAdmin(QuickFix.Message message, SessionID sessionID) { }
@@ -30,16 +30,16 @@ public class InitiatorApplication : MessageCracker, IInitiatorApplication
     }
 
     public void OnMessage(ExecutionReport report, SessionID sessionID) =>
-        OnProcessOrderReportReceived.Invoke(CreateOrderReport(report));
+        OnProcessOrderReportReceived!.Invoke(CreateOrderReport(report));
 
     public Result SendOrder(Order order)
     {
         if (!IsConnected) 
-            return Result.Fail(ErrorType.ExternalError, MessageError.NotPossibleNewOrder);
+            return Error.Create(ErrorType.ExternalError, MessageError.NotPossibleNewOrder, Field.Empty);
         
-        var send = Session.SendToTarget(PrepareShipmentOrder(order), Session.SessionID);
+        var send = Session.SendToTarget(PrepareShipmentOrder(order), Session!.SessionID);
             
-        return send ? Result.Ok() : Result.Fail(ErrorType.ExternalError, MessageError.NotPossibleNewOrder);
+        return send ? Result.Success() : Error.Create(ErrorType.ExternalError, MessageError.NotPossibleNewOrder, Field.Empty);
     }
     
     private static NewOrderSingle PrepareShipmentOrder(Order order)
@@ -62,8 +62,8 @@ public class InitiatorApplication : MessageCracker, IInitiatorApplication
     private static Side PrepareSide(char side) =>
         side switch
         {
-            OrderCommon.Constants.Side.Buy => new Side(Side.BUY),
-            OrderCommon.Constants.Side.Sell => new Side(Side.SELL),
+            OrderCommon.Constant.Side.Buy => new Side(Side.BUY),
+            OrderCommon.Constant.Side.Sell => new Side(Side.SELL),
             _ => new Side()
         };
 
@@ -86,7 +86,8 @@ public class InitiatorApplication : MessageCracker, IInitiatorApplication
     private static char DefineSide(ExecutionReport report) =>
         report.Side.Value switch
         {
-            Side.BUY => OrderCommon.Constants.Side.Buy,
-            Side.SELL => OrderCommon.Constants.Side.Sell
+            Side.BUY => OrderCommon.Constant.Side.Buy,
+            Side.SELL => OrderCommon.Constant.Side.Sell,
+            _ => throw new ApplicationException(MessageError.SideValueNotAllowed)
         };
 }

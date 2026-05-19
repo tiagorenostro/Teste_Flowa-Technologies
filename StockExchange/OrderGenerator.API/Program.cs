@@ -3,7 +3,7 @@ var appSettings = builder.Configuration.GetSection(nameof(AppSettings)).Get<AppS
 
 builder.Logging.AddConsole();
 builder.Services.AddSingleton<IInitiatorApplication, InitiatorApplication>();
-builder.Services.AddQuickFIXConfiguration<IInitiatorApplication>(appSettings.PathFileConfigurationQuickFIX!, 
+builder.Services.AddQuickFIXConfiguration<IInitiatorApplication>(appSettings.PathFileConfigurationQuickFIX, 
     isAcceptor: appSettings.IsAcceptor());
 builder.Services.AddSingleton<ITradingGateway, TradingGateway>();
 builder.Services.AddScoped<IOrderService, OrderService>();
@@ -13,10 +13,10 @@ builder.Services.AddExceptionHandler<ExceptionHandler>();
 builder.Services.AddSignalR();
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(appSettings.CorsPolicy!,
+    options.AddPolicy(appSettings.CorsPolicy,
         configurePolicy: policy =>
         {
-            policy.WithOrigins(appSettings.UrlStockExhangeWeb!)
+            policy.WithOrigins(appSettings.UrlStockExhangeWeb)
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials();
@@ -26,8 +26,8 @@ builder.Services.AddCors(options =>
 var app = builder.Build()
     .AddEndpoints();
 
-app.UseCors(appSettings.CorsPolicy!);
-app.MapHub<TradingHub>(appSettings.PatternHub!);
+app.UseCors(appSettings.CorsPolicy);
+app.MapHub<TradingHub>(appSettings.PatternHub);
 app.UseExceptionHandler();
 
 app.InitiateCommunication();

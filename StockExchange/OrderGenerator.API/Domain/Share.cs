@@ -23,9 +23,9 @@ public class Share
     private void UpdateStatus() =>
         Status = TotalAmount switch
         {
-            0 => Constants.Status.Flat,
-            > 0 => Constants.Status.Long,
-            < 0 => Constants.Status.Short
+            0 => Constant.Status.Flat,
+            > 0 => Constant.Status.Long,
+            < 0 => Constant.Status.Short
         };
     
     private void AddOrderReference(Order order)
@@ -33,11 +33,14 @@ public class Share
         if (!_orderCodes.Contains(order.Code))
             _orderCodes.Add(order.Code);
     }
+    
+    private decimal CalculateTotalCost(Order order) =>
+        TotalAmount * AveragePrice + order.Amount * order.Price;
 
     private void ProcessPurchase(Order order)
     {
         TotalAmount += order.Amount;
-        var totalCost = TotalAmount * AveragePrice + order.Amount * order.Price;
+        var totalCost = CalculateTotalCost(order);
         
         if (TotalAmount > 0)
             AveragePrice = totalCost / TotalAmount;
@@ -59,7 +62,7 @@ public class Share
         FinancialExposure = 0;
     }
     
-    public bool IsNoPosition() => Status == Constants.Status.Flat;
+    public bool IsNoPosition() => Status == Constant.Status.Flat;
     
     public void ProcessOrder(Order order)
     {
@@ -82,10 +85,10 @@ public class Share
 
     public static Result<Share> Create(string? symbol)
     {
-        if (symbol!.Length is < Constants.Symbol.MinimumSymbolSize or > Constants.Symbol.MaximumSymbolSize)
-            return Result<Share>.Fail(new Error(ErrorType.Validation, MessageError.UnprocessedOrder,
-                fields: [new Field(nameof(Symbol), MessageError.SymbolIsLong)]));
+        if (symbol!.Length is < Constant.Symbol.MinimumSymbolSize or > Constant.Symbol.MaximumSymbolSize)
+            return Error.Create(ErrorType.Validation, MessageError.UnprocessedOrder,
+                fields: Field.CreateCollection(nameof(Symbol), MessageError.SymbolIsLong));
         
-        return Result<Share>.Ok(new Share(symbol));
+        return new Share(symbol);
     }
 }

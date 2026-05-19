@@ -1,4 +1,4 @@
-namespace OrderGenerator.API.Constants;
+namespace OrderGenerator.API.Constant;
 
 public static class MessageError
 {

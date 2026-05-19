@@ -1,4 +1,4 @@
-namespace OrderGenerator.API.Handlers;
+namespace OrderGenerator.API.Handler;
 
 public class ExceptionHandler(ILogger<ExceptionHandler> logger) : IExceptionHandler
 {

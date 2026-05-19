@@ -1,4 +1,4 @@
-namespace OrderCommon.Constants;
+namespace OrderCommon.Constant;
 
 public static class Side
 {

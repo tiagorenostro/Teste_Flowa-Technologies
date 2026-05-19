@@ -49,8 +49,8 @@ public class AcceptorApplication(IOrderAccumulatorService orderAccumulatorServic
     private static char DefineSide(Side side) =>
         side.Value switch
         {
-            Side.BUY => OrderCommon.Constants.Side.Buy,
-            Side.SELL => OrderCommon.Constants.Side.Sell,
+            Side.BUY => OrderCommon.Constant.Side.Buy,
+            Side.SELL => OrderCommon.Constant.Side.Sell,
             _ => throw new ArgumentOutOfRangeException(nameof(side), side, UnmappedSide)
         };
 }

@@ -1,4 +1,4 @@
-namespace OrderAccumulator.Worker.Constants;
+namespace OrderAccumulator.Worker.Constant;
 
 public static class ValueExposure
 {

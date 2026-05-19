@@ -4,19 +4,19 @@ public static class RouteExtensions
 {
     public static IResult ToHttpResponse<T>(this T data) => TypedResults.Ok(data);
     public static IResult ToHttpResponse<T>(this Result<T> result) => 
-        result.Success ? 
+        result.IsSuccess ? 
             TypedResults.Ok(result.Value) : 
             MapError(result.Error);
 
     public static IResult ToCreatedResponse(this Result result) =>
-        result.Success ? 
+        result.IsSuccess ? 
             TypedResults.Created() : 
             MapError(result.Error);
     
     public static bool IsInvalid<T>(this T dto, out IResult? errorResponse) where T : class
     {
         var validationResults = new List<ValidationResult>();
-        var isValid = Validator.TryValidateObject(dto, new ValidationContext(dto), validationResults, true);
+        var isValid = Validator.TryValidateObject(dto, new ValidationContext(dto), validationResults, validateAllProperties: true);
 
         if (isValid)
         {

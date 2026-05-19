@@ -32,8 +32,8 @@ public class TradingGateway : ITradingGateway
     {
         using (var scope = _serviceScopeFactory.CreateScope())
         {
-            var orderService = scope.ServiceProvider.GetRequiredService<IOrderService>();
-            orderService.ProcessOrderReturn(dto);
+            scope.ServiceProvider.GetRequiredService<IOrderService>()
+                .ProcessOrderReturn(dto);
         }
 
         await SendReturnOrderAsync(dto);

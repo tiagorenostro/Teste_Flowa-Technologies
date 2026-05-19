@@ -1,6 +1,6 @@
 namespace OrderAccumulator.Worker.Infrastructure.Configuration;
 
-public sealed record AppSettings(string PathFileConfigurationQuickFIX, string Role)
+public sealed record AppSettings(string Role, string PathFileConfigurationQuickFIX)
 {
-    public bool IsAcceptor() => string.Equals(Role, "Acceptor", StringComparison.OrdinalIgnoreCase);
+    public bool IsAcceptor() => string.Equals(Role, OrderCommon.Constant.Role.Acceptor, StringComparison.OrdinalIgnoreCase);
 }

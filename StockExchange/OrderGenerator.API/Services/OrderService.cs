@@ -3,13 +3,13 @@ namespace OrderGenerator.API.Services;
 public class OrderService(IShareService shareService, 
     ITradingGateway tradingGateway, ILogger<OrderService> logger) : IOrderService
 {
-    private static readonly TimeOnly OpeningTime = new(10, 0);
-    private static readonly TimeOnly ClosingTime = new(18, 0);
+    private static readonly TimeOnly OpeningTime = new(hour: 10, minute: 0);
+    private static readonly TimeOnly ClosingTime = new(hour: 18, minute: 0);
 
     public Result<OrderResponseDto> GetOrder(Guid code) =>
         InMemoryDb.Order.TryGetValue(code, out var order) ? 
-            Result<OrderResponseDto>.Ok(ConvertToDto(order)) : 
-            Result<OrderResponseDto>.Fail(ErrorType.NotFound, MessageError.OrderNotFound); 
+            ConvertToDto(order) : 
+            Error.Create(ErrorType.NotFound, MessageError.OrderNotFound, Field.Empty); 
 
     public IEnumerable<OrderResponseDto> GetOrders() =>
         InMemoryDb.Order.OrderByDescending(x => x.Value.OperatingDatetime)
@@ -42,9 +42,9 @@ public class OrderService(IShareService shareService,
         
         if (now.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday || 
             timeOnly < OpeningTime || timeOnly > ClosingTime)
-            return Result.Fail(ErrorType.Validation, MessageError.TradingOutsideOfBusinessHours);
+            return Error.Create(ErrorType.Validation, MessageError.TradingOutsideOfBusinessHours, Field.Empty);
 
-        return Result.Ok();
+        return Result.Success();
     }
 
     private static Result<Order> CreateOrder(NewOrderRequestDto dto) =>
@@ -67,7 +67,7 @@ public class OrderService(IShareService shareService,
         catch (Exception ex)
         {
             logger.LogError(ex, ex.Message);
-            return Result.Fail(ErrorType.Unexpected, MessageError.NotPossibleNewOrder);
+            return Error.Create(ErrorType.Unexpected, MessageError.NotPossibleNewOrder, Field.Empty);
         }
     }
     
@@ -77,12 +77,12 @@ public class OrderService(IShareService shareService,
         {
             shareService.Save(share);
             InMemoryDb.Order[order.Code] = order;
-            return Result.Ok();
+            return Result.Success();
         }
         catch (Exception ex)
         {
             logger.LogError(ex, ex.Message);
-            return Result.Fail(ErrorType.Unexpected, MessageError.UnprocessedOrder);
+            return Error.Create(ErrorType.Unexpected, MessageError.UnprocessedOrder, Field.Empty);
         }
     }
 }
